@@ -175,12 +175,19 @@ The IMX477 HQ Camera has a removable **IR cut filter** on the lens mount. If the
 
 ## Part 5 — Live Video Stream to QGroundControl
 
-### Step 1: Run the Stream Script
+### Step 1: Download the Stream Script
 
-On the Raspberry Pi, run:
+On the Raspberry Pi, clone this repository:
 
 ```bash
-bash ~/scripts/start_stream.sh 192.168.0.125
+git clone https://github.com/salemaljebaly/rpi-setup-docs.git
+cd rpi-setup-docs
+```
+
+### Step 2: Run the Stream Script
+
+```bash
+bash scripts/start_stream.sh 192.168.0.125
 ```
 
 Replace `192.168.0.125` with your Mac's IP address.
@@ -191,7 +198,7 @@ To find your Mac's IP:
 ipconfig getifaddr en0
 ```
 
-### Step 2: Configure QGroundControl
+### Step 3: Configure QGroundControl
 
 1. Open QGroundControl on your Mac
 2. Click the **Q icon** (top left) → **Application Settings** → **Video**
@@ -199,7 +206,7 @@ ipconfig getifaddr en0
 4. Set **UDP Port** to `5600`
 5. Close settings — the video should appear in the main HUD
 
-### Step 3: Stop the Stream
+### Step 4: Stop the Stream
 
 ```bash
 sudo killall rpicam-vid gst-launch-1.0
