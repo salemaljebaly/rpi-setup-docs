@@ -54,6 +54,7 @@ rpicam-vid -t 0 \
   --libav-format mpegts \
   --sharpness 1.5 \
   --denoise off \
+  --rotation 180 \
   -o $PIPE &
 
 sleep 2
