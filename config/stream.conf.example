@@ -1,0 +1,18 @@
+# Stream Configuration Example
+# Copy this file to stream.conf and edit the values
+
+# Target IP address (your Mac or PC running QGroundControl)
+TARGET_IP=192.168.0.125
+
+# UDP port (must match QGroundControl video settings)
+PORT=5600
+
+# Resolution
+WIDTH=1280
+HEIGHT=720
+
+# Frames per second
+FRAMERATE=30
+
+# Bitrate in bits per second (4000000 = 4 Mbps)
+BITRATE=4000000
