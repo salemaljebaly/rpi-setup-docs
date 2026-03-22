@@ -72,9 +72,9 @@ After the Pi boots (wait 1–2 minutes), find its IP address using one of these 
 ping lab2.local
 ```
 
-**Option B — Scan the network for SSH:**
+**Option B — Scan the network for SSH (parallel, fast):**
 ```bash
-for i in $(seq 1 254); do nc -zv -w 1 192.168.0.$i 22 2>&1 | grep -q succeeded && echo "SSH open: 192.168.0.$i"; done
+for i in $(seq 1 254); do (nc -zv -w 1 192.168.0.$i 22 2>&1 | grep -q succeeded && echo "SSH open: 192.168.0.$i") & done; wait
 ```
 
 **Option C — Check your router's admin page** at `192.168.0.1` and look for the Pi in the connected devices list.
