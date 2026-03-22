@@ -103,26 +103,17 @@ Raspberry Pi Connect allows you to access your Pi's shell and desktop from anywh
 
 Create a free account at: https://www.raspberrypi.com/software/connect/
 
-### Step 2: Install Raspberry Pi Connect on the Pi
+### Step 2: Enable in RPi Imager (Easiest Way)
 
-```bash
-sudo apt update
-sudo apt install -y rpi-connect
-```
+When configuring your SD card in RPi Imager, go to **Edit Settings** and enable **Raspberry Pi Connect**. It will ask you to sign in with your Raspberry Pi account and link the device automatically.
 
-### Step 3: Sign In
+This means Raspberry Pi Connect is fully set up before the Pi even boots for the first time — no extra commands needed.
 
-```bash
-rpi-connect signin
-```
-
-Follow the link shown in the terminal to authorize the device in your browser.
-
-### Step 4: Access from Anywhere
+### Step 3: Access from Anywhere
 
 Go to [connect.raspberrypi.com](https://connect.raspberrypi.com) in your browser and connect to your Pi's shell or screen from anywhere.
 
-> **Note:** Raspberry Pi Connect is very useful when SSH is not working yet, or when you need to debug early setup issues without a screen.
+> **Note:** Raspberry Pi Connect is very useful when SSH is not working yet, or when you need to debug early setup issues without a screen. It was essential during the initial setup in this guide.
 
 ---
 
