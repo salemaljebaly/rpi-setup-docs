@@ -42,7 +42,7 @@ sleep 1
 rm -f $PIPE
 mkfifo $PIPE
 
-# Start camera capture with H.264 encoding
+# Start camera capture with H.264 encoding (ultrafast + zerolatency for low latency)
 rpicam-vid -t 0 \
   --inline \
   --width $WIDTH \
@@ -52,6 +52,7 @@ rpicam-vid -t 0 \
   --codec libav \
   --libav-video-codec libx264 \
   --libav-format mpegts \
+  --libav-video-codec-opts 'preset=ultrafast;tune=zerolatency' \
   --sharpness 1.5 \
   --denoise off \
   --rotation 180 \
@@ -59,11 +60,12 @@ rpicam-vid -t 0 \
 
 sleep 2
 
-# Stream via GStreamer RTP to QGroundControl
+# Stream via GStreamer RTP to QGroundControl (low latency settings)
 gst-launch-1.0 filesrc location=$PIPE ! \
   tsdemux ! \
+  queue max-size-buffers=1 max-size-time=0 max-size-bytes=0 leaky=downstream ! \
   h264parse ! \
   rtph264pay config-interval=1 pt=96 ! \
-  udpsink host=$TARGET_IP port=$PORT
+  udpsink host=$TARGET_IP port=$PORT sync=false async=false
 
 echo "Stream stopped."
