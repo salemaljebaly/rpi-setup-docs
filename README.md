@@ -184,21 +184,30 @@ git clone https://github.com/salemaljebaly/rpi-setup-docs.git
 cd rpi-setup-docs
 ```
 
-### Step 2: Run the Stream Script
+### Step 2: Configure the Target IP
+
+Copy the example config and set your Mac's IP address:
 
 ```bash
-bash scripts/start_stream.sh 192.168.0.125
+cp config/stream.conf.example config/stream.conf
+nano config/stream.conf
 ```
 
-Replace `192.168.0.125` with your Mac's IP address.
-
-To find your Mac's IP:
+To find your Mac's IP, run this on your Mac:
 
 ```bash
 ipconfig getifaddr en0
 ```
 
-### Step 3: Configure QGroundControl
+Set `TARGET_IP` in `stream.conf` to that value.
+
+### Step 3: Run the Stream Manually (Test First)
+
+```bash
+bash scripts/start_stream.sh
+```
+
+### Step 4: Configure QGroundControl
 
 1. Open QGroundControl on your Mac
 2. Click the **Q icon** (top left) → **Application Settings** → **Video**
@@ -206,10 +215,25 @@ ipconfig getifaddr en0
 4. Set **UDP Port** to `5600`
 5. Close settings — the video should appear in the main HUD
 
-### Step 4: Stop the Stream
+### Step 5: Enable Auto-Start on Boot
+
+Once the stream is working, install it as a systemd service so it starts automatically after every reboot:
 
 ```bash
-sudo killall rpicam-vid gst-launch-1.0
+bash scripts/install_service.sh
+```
+
+Check the service status:
+
+```bash
+sudo systemctl status camera-stream
+```
+
+To stop or restart the service:
+
+```bash
+sudo systemctl stop camera-stream
+sudo systemctl restart camera-stream
 ```
 
 ---

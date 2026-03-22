@@ -1,5 +1,6 @@
-# Stream Configuration Example
+# Stream Configuration
 # Copy this file to stream.conf and edit the values
+# cp config/stream.conf.example config/stream.conf
 
 # Target IP address (your Mac or PC running QGroundControl)
 TARGET_IP=192.168.0.125
