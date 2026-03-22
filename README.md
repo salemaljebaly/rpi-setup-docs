@@ -63,31 +63,35 @@ Click **Save**, then click **Write**. Wait for it to finish, then insert the SD 
 
 ## Part 2 — Connect to Your Raspberry Pi
 
-### Step 1: Find the Pi on Your Network
+### Step 1: Connect via SSH
 
-After the Pi boots (wait 1–2 minutes), find its IP address using one of these methods:
+After the Pi boots (wait 1–2 minutes), connect directly using the hostname you set in RPi Imager:
 
-**Option A — Use hostname:**
 ```bash
-ping lab2.local
+ssh lab2@lab2.local
 ```
 
-**Option B — Scan the network for SSH (parallel, fast):**
+The format is always `username@hostname.local`. This works automatically — no need to find the IP address.
+
+> **How it works:** The Pi broadcasts its hostname on the local network via mDNS. As long as your Mac and the Pi are on the same WiFi network, this will resolve automatically.
+
+### Step 2: If hostname does not work
+
+If `lab2.local` does not resolve, find the IP manually using one of these methods:
+
+**Option A — Parallel network scan (fast):**
 ```bash
 for i in $(seq 1 254); do (nc -zv -w 1 192.168.0.$i 22 2>&1 | grep -q succeeded && echo "SSH open: 192.168.0.$i") & done; wait
 ```
 
-**Option C — Check your router's admin page** at `192.168.0.1` and look for the Pi in the connected devices list.
+**Option B — Check your router's admin page** at `192.168.0.1` and look for the Pi in the connected devices list.
 
-### Step 2: Connect via SSH
-
+Then connect using the IP:
 ```bash
 ssh lab2@192.168.0.127
 ```
 
-Replace `192.168.0.127` with your Pi's actual IP address.
-
-> **Tip:** To avoid hunting for the IP address every time, set a static IP in your router's DHCP settings using the Pi's MAC address.
+> **Tip:** To always get the same IP, set a static IP reservation in your router's DHCP settings using the Pi's MAC address.
 
 ---
 
