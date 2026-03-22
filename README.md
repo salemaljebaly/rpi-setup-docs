@@ -55,9 +55,19 @@ ssh-keygen -t rsa -b 4096
 
 Copy the output and paste it into the **SSH public key** field in RPi Imager settings.
 
-### Step 4: Write the SD Card
+### Step 4: Enable Raspberry Pi Connect (Remote Access)
+
+In the same RPi Imager settings, enable **Raspberry Pi Connect**. Sign in with your Raspberry Pi account to link the device automatically.
+
+If you do not have an account yet, create one first at: https://www.raspberrypi.com/software/connect/
+
+> **Why this matters:** Raspberry Pi Connect gives you browser-based shell access from anywhere — very useful if SSH is not working yet or you need to debug the Pi without a screen.
+
+### Step 5: Write the SD Card
 
 Click **Save**, then click **Write**. Wait for it to finish, then insert the SD card into your Raspberry Pi and power it on.
+
+Once booted, go to [connect.raspberrypi.com](https://connect.raspberrypi.com) to access your Pi from anywhere.
 
 ---
 
@@ -95,29 +105,7 @@ ssh lab2@192.168.0.127
 
 ---
 
-## Part 3 — Raspberry Pi Connect (Remote Access via Cloud)
-
-Raspberry Pi Connect allows you to access your Pi's shell and desktop from anywhere using a browser, without needing to configure port forwarding.
-
-### Step 1: Create an Account
-
-Create a free account at: https://www.raspberrypi.com/software/connect/
-
-### Step 2: Enable in RPi Imager (Easiest Way)
-
-When configuring your SD card in RPi Imager, go to **Edit Settings** and enable **Raspberry Pi Connect**. It will ask you to sign in with your Raspberry Pi account and link the device automatically.
-
-This means Raspberry Pi Connect is fully set up before the Pi even boots for the first time — no extra commands needed.
-
-### Step 3: Access from Anywhere
-
-Go to [connect.raspberrypi.com](https://connect.raspberrypi.com) in your browser and connect to your Pi's shell or screen from anywhere.
-
-> **Note:** Raspberry Pi Connect is very useful when SSH is not working yet, or when you need to debug early setup issues without a screen. It was essential during the initial setup in this guide.
-
----
-
-## Part 4 — Camera Setup
+## Part 3 — Camera Setup
 
 ### Step 1: Connect the Camera
 
@@ -162,7 +150,7 @@ scp lab2@192.168.0.127:~/test.jpg ~/Desktop/test.jpg
 
 ---
 
-## Part 5 — Known Camera Issues and Fixes
+## Part 4 — Known Camera Issues and Fixes
 
 ### Issue 1: Blurry Image
 
@@ -185,7 +173,7 @@ The IMX477 HQ Camera has a removable **IR cut filter** on the lens mount. If the
 
 ---
 
-## Part 6 — Live Video Stream to QGroundControl
+## Part 5 — Live Video Stream to QGroundControl
 
 ### Step 1: Run the Stream Script
 
@@ -219,7 +207,7 @@ sudo killall rpicam-vid gst-launch-1.0
 
 ---
 
-## Part 7 — Remote Streaming over Tailscale
+## Part 6 — Remote Streaming over Tailscale
 
 For remote access over the internet (when the Pi and your Mac are on different networks), use Tailscale VPN.
 
