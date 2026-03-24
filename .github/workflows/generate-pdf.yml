@@ -2,8 +2,11 @@ name: Generate Arabic Guide PDF
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'docs/arabic-guide.html'
+      - '.github/workflows/generate-pdf.yml'
   workflow_dispatch:
 
 permissions:
