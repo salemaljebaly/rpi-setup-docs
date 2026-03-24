@@ -6,6 +6,9 @@ on:
       - 'docs/arabic-guide.html'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-pdf:
     runs-on: ubuntu-latest
