@@ -238,15 +238,45 @@ sudo systemctl restart camera-stream
 
 ---
 
-## Part 6 — Remote Streaming over Tailscale
+## Part 6 — Remote Access over the Internet (Tailscale)
 
-For remote access over the internet (when the Pi and your Mac are on different networks), use Tailscale VPN.
+By default, the setup works on a **local network**. If the Pi and your device are on **different networks** (e.g. Pi on a drone field, you on a laptop elsewhere), install [Tailscale](https://tailscale.com) on both devices. Tailscale creates a private VPN between them so they behave as if they are on the same network — no port forwarding or firewall rules needed.
 
-This setup is documented in a separate repository:
+### Step 1: Install Tailscale on the Pi
 
-👉 [mavlink-router-raspberrypi](https://github.com/salemaljebaly/mavlink-router-raspberrypi)
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+```
 
-The same approach applies for camera streaming — replace the target IP address with your Mac's **Tailscale IP** when running the stream script.
+### Step 2: Install Tailscale on your device
+
+Download from [tailscale.com/download](https://tailscale.com/download) and sign in with the same account.
+
+### Step 3: Find your device's Tailscale IP
+
+```bash
+tailscale ip -4
+```
+
+The IP will start with `100.x.x.x`.
+
+### Step 4: Update the two config files on the Pi
+
+**Camera stream** — `config/stream.conf`:
+```
+TARGET_IP=100.x.x.x
+```
+
+**MAVLink router** — `/etc/mavlink-router/main.conf`:
+```ini
+[UdpEndpoint qgc]
+Mode=Normal
+Address=100.x.x.x
+Port=14550
+```
+
+Everything else stays the same — same ports, same QGroundControl settings. Tailscale handles the rest.
 
 ---
 

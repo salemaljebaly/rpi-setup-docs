@@ -577,12 +577,25 @@ sudo tailscale up</pre>
   <p>حمّل التطبيق من <a href="https://tailscale.com/download" target="_blank">tailscale.com/download</a> وسجّل دخولك بنفس الحساب.</p>
 
   <h3>استخدام Tailscale IP في البث</h3>
-  <p>بعد الاتصال، استبدل IP الهدف في <code>stream.conf</code> بـ <strong>Tailscale IP</strong> الخاص بجهازك (يبدأ عادة بـ <code>100.x.x.x</code>).</p>
-  <p>اعثر على Tailscale IP لجهازك:</p>
+  <h3>الخطوة الثالثة: معرفة Tailscale IP لجهازك</h3>
+  <p>بعد تسجيل الدخول على كلا الجهازين، نفّذ هذا الأمر على جهازك:</p>
   <pre>tailscale ip -4</pre>
+  <p>ستحصل على عنوان يبدأ بـ <code>100.x.x.x</code> — هذا هو العنوان الذي ستستخدمه.</p>
+
+  <h3>الخطوة الرابعة: تحديث ملفات الإعداد على الـ Pi</h3>
+  <p>يجب تغيير العنوان في موضعين فقط — لا شيء آخر يحتاج إلى تعديل:</p>
+
+  <p><strong>1. بث الكاميرا</strong> — في <code>config/stream.conf</code>:</p>
+  <pre>TARGET_IP=100.x.x.x</pre>
+
+  <p><strong>2. MAVLink Router</strong> — في <code>/etc/mavlink-router/main.conf</code>:</p>
+  <pre>[UdpEndpoint qgc]
+Mode=Normal
+Address=100.x.x.x
+Port=14550</pre>
 
   <div class="note">
-    نفس الأسلوب ينطبق على MAVLink Router — استبدل عنوان IP في <code>main.conf</code> بعنوان Tailscale الخاص بجهازك.
+    كل شيء آخر يبقى كما هو — نفس المنافذ، نفس إعدادات QGroundControl. Tailscale يتولى التوصيل بشفافية بين الجهازين بغض النظر عن موقعهما.
   </div>
 
   <hr class="section-divider" />
