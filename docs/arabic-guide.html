@@ -464,7 +464,7 @@ sudo nmcli connection up eth0-static</pre>
 
   <p>الكاميرا تُشفّر الفيديو داخلياً وتبثّه عبر RTSP. الـ Pi يُعيد تغليف الحزم فقط ويُرسلها إلى QGC عبر UDP — بدون أي معالجة أو تشفير.</p>
 
-  <pre>كاميرا Dahua (H.264) ← RTSP ← Pi ← RTP/UDP ← QGroundControl</pre>
+  <pre>كاميرا Dahua (H.264) → RTSP → Pi → RTP/UDP → QGroundControl</pre>
 
   <h3>الخطوة الأولى: استنساخ المستودع على الـ Pi</h3>
   <pre>git clone https://github.com/salemaljebaly/rpi-setup-docs.git
@@ -494,7 +494,7 @@ sudo systemctl restart ipcam-stream</pre>
   <hr class="section-divider" />
 
   <!-- Part 6 -->
-  <h2 id="part6">الجزء السادس — MAVLink Router للتحكم بالطائرة</h2>
+  <h2 id="part6">الجزء الخامس — MAVLink Router للتحكم بالطائرة</h2>
 
   <p>لتوصيل وحدة التحكم الطيراني (مثل Cube Orange+) بـ QGroundControl عبر Raspberry Pi، نستخدم برنامج <a href="https://github.com/mavlink-router/mavlink-router" target="_blank"><strong>mavlink-router</strong></a>.</p>
 
@@ -549,7 +549,7 @@ sudo systemctl status mavlink-router</pre>
   <hr class="section-divider" />
 
   <!-- Part 7 -->
-  <h2 id="part7">الجزء السابع — البث عن بُعد عبر Tailscale</h2>
+  <h2 id="part7">الجزء السادس — البث عن بُعد عبر Tailscale</h2>
 
   <p>للوصول عن بُعد عبر الإنترنت (عندما يكون Pi وجهازك على شبكات مختلفة)، استخدم <a href="https://tailscale.com/" target="_blank"><strong>Tailscale VPN</strong></a>.</p>
 
