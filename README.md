@@ -1,17 +1,19 @@
-# Raspberry Pi Setup Guide — Camera Streaming to QGroundControl
+# Raspberry Pi Setup Guide — Drone Ground Control System
 
-A complete guide to set up a Raspberry Pi 5 with an HQ Camera (IMX477), stream live video to QGroundControl on your Mac/PC, and access the device remotely over the internet using Tailscale.
+A complete guide to set up a Raspberry Pi 5 with a Dahua IP Camera, stream live video to QGroundControl, connect a flight controller (Cube Orange+) via MAVLink, and access everything remotely over the internet using Tailscale.
 
 ---
 
 ## Hardware Requirements
 
 - Raspberry Pi 5
-- Raspberry Pi HQ Camera (IMX477) with a compatible lens
+- Dahua IP Camera (DH-IPC-HFW2431SP-S-S2) — or any RTSP IP camera
 - MicroSD card (16GB or more)
 - MicroSD card USB reader
 - Power supply (USB-C, 5V/5A for RPi 5)
-- Your Mac or PC
+- RJ45 Ethernet cable (Pi ↔ Camera)
+- 12V power supply or POE injector for the camera
+- Your Mac, Windows, or Linux device
 
 ---
 
@@ -19,11 +21,11 @@ A complete guide to set up a Raspberry Pi 5 with an HQ Camera (IMX477), stream l
 
 ### Step 1: Download Raspberry Pi Imager
 
-Download and install [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your Mac or PC.
+Download and install [Raspberry Pi Imager](https://www.raspberrypi.com/software/) on your device.
 
 ### Step 2: Configure Settings Before Writing
 
-Open Raspberry Pi Imager, select your device and OS, then click the **gear icon ⚙️** (Edit Settings) before writing.
+Open Raspberry Pi Imager, select your device and OS, click **Next**, then choose **Edit Settings**.
 
 Fill in the following:
 
@@ -34,80 +36,74 @@ Fill in the following:
 | Password | Set a strong password |
 | WiFi SSID | Your WiFi network name |
 | WiFi Password | Your WiFi password |
-| Enable SSH | ✅ Checked |
+| Enable SSH | ✅ Checked (Services tab) |
 | SSH Authentication | Public key (recommended) |
 
-> **Note:** Hostname and username do not have to match. But keeping them the same makes it easier to remember.
+> **Note:** Hostname and username do not have to match, but keeping them the same makes it easier to remember.
 
-### Step 3: Add Your SSH Public Key
+### Step 3: Add Your SSH Public Key (Optional)
 
-On your Mac, open Terminal and run:
+This step lets you connect via SSH without entering a password every time.
+
+Open Terminal on your device and run:
 
 ```bash
 cat ~/.ssh/id_rsa.pub
 ```
 
-If the file does not exist, generate a new key first:
-
-```bash
-ssh-keygen -t rsa -b 4096
-```
+If the key does not exist yet, follow the [GitHub SSH key guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) to generate one.
 
 Copy the output and paste it into the **SSH public key** field in RPi Imager settings.
 
 ### Step 4: Enable Raspberry Pi Connect (Remote Access)
 
-In the same RPi Imager settings, enable **Raspberry Pi Connect**. Sign in with your Raspberry Pi account to link the device automatically.
-
-If you do not have an account yet, create one first at: https://www.raspberrypi.com/software/connect/
+In the same settings window, enable **Raspberry Pi Connect**. Sign in with your Raspberry Pi account to link the device automatically.
 
 > **Why this matters:** Raspberry Pi Connect gives you browser-based shell access from anywhere — very useful if SSH is not working yet or you need to debug the Pi without a screen.
 
 ### Step 5: Write the SD Card
 
-Click **Save**, then click **Write**. Wait for it to finish, then insert the SD card into your Raspberry Pi and power it on.
+Click **Save**, then **Yes** to start writing. Once done, insert the SD card into your Raspberry Pi and power it on.
 
-Once booted, go to [connect.raspberrypi.com](https://connect.raspberrypi.com) to access your Pi from anywhere.
+After booting, access your Pi from anywhere at [connect.raspberrypi.com](https://connect.raspberrypi.com).
 
 ---
 
-## Part 2 — Connect to Your Raspberry Pi
+## Part 2 — Connect to Your Raspberry Pi via SSH
 
-### Step 1: Connect via SSH
+### Step 1: Connect via hostname
 
-After the Pi boots (wait 1–2 minutes), connect directly using the hostname you set in RPi Imager:
+After the Pi boots (wait 1–2 minutes), open Terminal and run:
 
 ```bash
 ssh lab2@lab2.local
 ```
 
-The format is always `username@hostname.local`. This works automatically — no need to find the IP address.
-
-> **How it works:** The Pi broadcasts its hostname on the local network via mDNS. As long as your Mac and the Pi are on the same WiFi network, this will resolve automatically.
+The format is always `username@hostname.local` — works automatically on the same WiFi network without knowing the IP.
 
 ### Step 2: If hostname does not work
 
-If `lab2.local` does not resolve, find the IP manually using one of these methods:
+Find the IP manually:
 
-**Option A — Parallel network scan (fast):**
+**Option A — Parallel network scan:**
 ```bash
 for i in $(seq 1 254); do (nc -zv -w 1 192.168.0.$i 22 2>&1 | grep -q succeeded && echo "SSH open: 192.168.0.$i") & done; wait
 ```
 
-**Option B — Check your router's admin page** at `192.168.0.1` and look for the Pi in the connected devices list.
+**Option B —** Check your router's admin page at `192.168.0.1` and look for the Pi in the connected devices list.
 
 Then connect using the IP:
 ```bash
 ssh lab2@192.168.0.127
 ```
 
-> **Tip:** To always get the same IP, set a static IP reservation in your router's DHCP settings using the Pi's MAC address.
+> **Tip:** To always get the same IP, set a static DHCP reservation in your router using the Pi's MAC address.
 
 ---
 
 ## Part 3 — Camera Setup
 
-Two camera options are supported. See the full guide for both:
+Two camera options are documented. See the full guide:
 
 👉 **[docs/camera-setup.md](docs/camera-setup.md)**
 
@@ -118,28 +114,88 @@ Two camera options are supported. See the full guide for both:
 
 ### Quick Start (Dahua IP Camera)
 
-Clone the repo on the Pi, then start the stream:
+**1. Set static IP on Pi's ethernet port:**
+```bash
+sudo nmcli connection add type ethernet ifname eth0 con-name eth0-static \
+  ip4 192.168.1.100/24 ipv4.method manual ipv6.method ignore
+sudo nmcli connection up eth0-static
+```
 
+**2. Clone the repo and start the stream:**
 ```bash
 git clone https://github.com/salemaljebaly/rpi-setup-docs.git
 cd rpi-setup-docs
 bash scripts/start_ipcam_stream.sh
 ```
 
-Enable auto-start on boot:
-
+**3. Enable auto-start on boot:**
 ```bash
 sudo systemctl enable ipcam-stream
 sudo systemctl start ipcam-stream
 ```
 
-Open QGroundControl → **Application Settings** → **Video** → `UDP h.264 Video Stream` → port `5600`.
+**4. Open QGroundControl** → **Application Settings** → **Video** → `UDP h.264 Video Stream` → port `5600`.
 
 ---
 
-## Part 6 — Remote Access over the Internet (Tailscale)
+## Part 4 — MAVLink Router (Flight Controller)
 
-By default, the setup works on a **local network**. If the Pi and your device are on **different networks** (e.g. Pi on a drone field, you on a laptop elsewhere), install [Tailscale](https://tailscale.com) on both devices. Tailscale creates a private VPN between them so they behave as if they are on the same network — no port forwarding or firewall rules needed.
+To connect a flight controller (e.g. Cube Orange+) to QGroundControl via the Pi, use [mavlink-router](https://github.com/mavlink-router/mavlink-router).
+
+### Step 1: Install dependencies
+
+```bash
+sudo apt install -y git meson ninja-build pkg-config gcc g++ libsystemd-dev python3-pip
+```
+
+### Step 2: Build and install
+
+```bash
+git clone https://github.com/mavlink-router/mavlink-router.git
+cd mavlink-router
+git submodule update --init --recursive
+meson setup build -Dsystemdsystemunitdir=/lib/systemd/system
+ninja -C build
+sudo ninja -C build install
+```
+
+### Step 3: Configure
+
+```bash
+sudo mkdir -p /etc/mavlink-router
+sudo nano /etc/mavlink-router/main.conf
+```
+
+```ini
+[General]
+Log=/var/log/mavlink-router
+MavlinkDialect=ardupilotmega
+
+[UartEndpoint cube]
+Device=/dev/ttyACM0
+Baud=115200
+FlowControl=false
+
+[UdpEndpoint qgc]
+Mode=Normal
+Address=192.168.0.125
+Port=14550
+```
+
+Replace `192.168.0.125` with your device's IP.
+
+### Step 4: Enable the service
+
+```bash
+sudo systemctl enable mavlink-router
+sudo systemctl start mavlink-router
+```
+
+---
+
+## Part 5 — Remote Access over the Internet (Tailscale)
+
+For remote access when the Pi and your device are on different networks, use [Tailscale](https://tailscale.com).
 
 ### Step 1: Install Tailscale on the Pi
 
@@ -162,8 +218,8 @@ The IP will start with `100.x.x.x`.
 
 ### Step 4: Update the two config files on the Pi
 
-**Camera stream** — `config/stream.conf`:
-```
+**Camera stream** — `scripts/start_ipcam_stream.sh`:
+```bash
 TARGET_IP=100.x.x.x
 ```
 
@@ -175,7 +231,7 @@ Address=100.x.x.x
 Port=14550
 ```
 
-Everything else stays the same — same ports, same QGroundControl settings. Tailscale handles the rest.
+Everything else stays the same — same ports, same QGroundControl settings.
 
 ---
 
@@ -184,18 +240,9 @@ Everything else stays the same — same ports, same QGroundControl settings. Tai
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | Pi not found on network | Not booted yet or wrong WiFi credentials | Wait 2 min, check WiFi settings in RPi Imager |
-| SSH permission denied | Wrong username or key not added | Check username in RPi Imager, re-add public key |
-| SSH key negotiation error | Wrong IP, connecting to a different device | Confirm Pi IP with `ip addr show` on the Pi |
-| Camera not detected | Cable not connected properly | Re-seat the CSI ribbon cable |
-| Blurry stream | Lens not focused | Rotate lens manually while watching the stream |
-| Purple image | IR cut filter missing or misaligned | Check and reseat the IR filter on the lens mount |
-| "Waiting for video" in QGC | Stream stopped or wrong settings | Restart stream script, verify UDP port 5600 |
-| High video latency | Software encoding is slow | Future improvement: switch to RTSP with mediamtx |
-
----
-
-## Next Improvements
-
-- [ ] Switch from RTP/UDP to RTSP using [mediamtx](https://github.com/bluenviron/mediamtx) for lower latency
-- [ ] Auto-start stream on boot using systemd service
-- [ ] Set static IP via router DHCP reservation
+| SSH permission denied | Wrong username or key not added | Check username, re-add public key |
+| Camera not reachable (ping fails) | eth0 has no IP or camera unpowered | Run `nmcli connection up eth0-static`, check camera power |
+| "Waiting for video" in QGC | Stream stopped or wrong settings | Run `sudo systemctl restart ipcam-stream` |
+| Stream works manually but not on boot | Service not enabled | Run `sudo systemctl enable ipcam-stream` |
+| QGC not receiving MAVLink | Wrong IP in mavlink-router config | Update `Address` in `/etc/mavlink-router/main.conf` |
+| Cannot access camera web UI | Mac not on same subnet as camera | Use SSH tunnel: `ssh -L 8080:192.168.1.108:80 lab2@lab2.local -N` |
