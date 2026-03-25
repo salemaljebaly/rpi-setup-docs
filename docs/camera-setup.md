@@ -124,7 +124,7 @@ ffprobe -v error -rtsp_transport tcp \
 ```
 
 > **Important:** If your password contains `@`, replace each `@` with `%40` in the URL.
-> Example: `ahmed1239875@@` → `ahmed1239875%40%40`
+> Example: `my@@password` → `my%40%40password`
 
 ### Step 5: Run the Stream
 
