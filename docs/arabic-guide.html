@@ -554,32 +554,45 @@ sudo systemctl status mavlink-router</pre>
 
   <p>للوصول عن بُعد عبر الإنترنت (عندما يكون Pi وجهازك على شبكات مختلفة)، استخدم <a href="https://tailscale.com/" target="_blank"><strong>Tailscale VPN</strong></a>.</p>
 
-  <h3>تثبيت Tailscale على Raspberry Pi</h3>
+  <h3>الخطوة الأولى: تثبيت Tailscale على Raspberry Pi</h3>
   <pre>curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up</pre>
 
-  <h3>تثبيت Tailscale على جهازك</h3>
-  <p>حمّل التطبيق من <a href="https://tailscale.com/download" target="_blank">tailscale.com/download</a> وسجّل دخولك بنفس الحساب.</p>
+  <h3>الخطوة الثانية: تثبيت Tailscale على جهازك</h3>
+  <p>حمّل التطبيق من <a href="https://tailscale.com/download" target="_blank">tailscale.com/download</a> وسجّل دخولك بنفس الحساب المستخدم في الـ Pi.</p>
 
   <h3>الخطوة الثالثة: معرفة Tailscale IP لجهازك</h3>
-  <p>بعد تسجيل الدخول على كلا الجهازين، نفّذ هذا الأمر على جهازك:</p>
+  <p>نفّذ هذا الأمر على جهازك:</p>
   <pre>tailscale ip -4</pre>
   <p>ستحصل على عنوان يبدأ بـ <code>100.x.x.x</code> — هذا هو العنوان الذي ستستخدمه.</p>
 
-  <h3>الخطوة الرابعة: تحديث ملفات الإعداد على الـ Pi</h3>
-  <p>يجب تغيير العنوان في موضعين فقط — لا شيء آخر يحتاج إلى تعديل:</p>
+  <h3>الخطوة الرابعة: التحقق من اتصال كلا الجهازين</h3>
+  <p>على الـ Pi، تحقق من أن جهازك يظهر متصلاً:</p>
+  <pre>tailscale status</pre>
+  <div class="warning">
+    يجب أن يظهر جهازك بعنوان <code>100.x.x.x</code> بدون كلمة "offline". إذا ظهر offline افتح Tailscale على جهازك وتأكد من الاتصال بنفس الحساب.
+  </div>
+
+  <h3>الخطوة الخامسة: تحديث ملفات الإعداد على الـ Pi</h3>
+  <p>يجب تغيير العنوان في موضعين فقط:</p>
 
   <p><strong>1. بث الكاميرا</strong> — في <code>scripts/start_ipcam_stream.sh</code>:</p>
-  <pre>TARGET_IP=100.x.x.x</pre>
+  <pre>TARGET_IP=100.x.x.x   # Tailscale IP لجهازك</pre>
 
   <p><strong>2. MAVLink Router</strong> — في <code>/etc/mavlink-router/main.conf</code>:</p>
   <pre>[UdpEndpoint qgc]
 Mode=Normal
-Address=100.x.x.x
+Address=100.x.x.x     # Tailscale IP لجهازك
 Port=14550</pre>
 
+  <p>ثم أعد تشغيل خدمة البث:</p>
+  <pre>sudo systemctl restart ipcam-stream</pre>
+
   <div class="note">
-    كل شيء آخر يبقى كما هو — نفس المنافذ، نفس إعدادات QGroundControl. Tailscale يتولى التوصيل بشفافية بين الجهازين بغض النظر عن موقعهما.
+    كل شيء آخر يبقى كما هو — نفس المنافذ، نفس إعدادات QGroundControl. Tailscale يتولى التوصيل بشفافية عبر الإنترنت بغض النظر عن موقع الجهازين.
+  </div>
+  <div class="note">
+    إذا كان البث متقطعاً على إنترنت بطيء، غيّر <code>subtype=0</code> إلى <code>subtype=1</code> في رابط RTSP داخل <code>start_ipcam_stream.sh</code> للحصول على دقة أقل وبيانات أخف.
   </div>
 
   <hr class="section-divider" />

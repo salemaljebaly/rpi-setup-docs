@@ -210,28 +210,47 @@ Download from [tailscale.com/download](https://tailscale.com/download) and sign 
 
 ### Step 3: Find your device's Tailscale IP
 
+Run this on your device (Mac/Windows/Linux):
+
 ```bash
 tailscale ip -4
 ```
 
 The IP will start with `100.x.x.x`.
 
-### Step 4: Update the two config files on the Pi
+### Step 4: Verify both devices are connected
+
+On the Pi, confirm your device shows as online:
+
+```bash
+tailscale status
+```
+
+Your device should appear with its `100.x.x.x` IP and **no "offline" label**. If it shows offline, open Tailscale on your device and make sure it is connected with the same account.
+
+### Step 5: Update the two config files on the Pi
 
 **Camera stream** — `scripts/start_ipcam_stream.sh`:
 ```bash
-TARGET_IP=100.x.x.x
+TARGET_IP=100.x.x.x   # your device's Tailscale IP
 ```
 
 **MAVLink router** — `/etc/mavlink-router/main.conf`:
 ```ini
 [UdpEndpoint qgc]
 Mode=Normal
-Address=100.x.x.x
+Address=100.x.x.x     # your device's Tailscale IP
 Port=14550
 ```
 
-Everything else stays the same — same ports, same QGroundControl settings.
+Then restart the stream:
+```bash
+sudo systemctl restart ipcam-stream
+```
+
+Everything else stays the same — same ports, same QGroundControl settings. Tailscale handles the routing over the internet transparently.
+
+> **Note:** The stream requires a stable upload connection on the Pi side. If video is choppy over the internet, switch to sub stream by changing `subtype=0` to `subtype=1` in the RTSP URL inside `start_ipcam_stream.sh`.
 
 ---
 
