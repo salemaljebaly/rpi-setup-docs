@@ -142,15 +142,18 @@ The camera encodes video internally. The Pi just re-wraps packets — no decodin
 
 ### Step 6: Enable Auto-Start on Boot
 
+After updating `CAMERA_PASS` and `TARGET_IP` in `scripts/start_ipcam_stream.sh`, run the install script:
+
 ```bash
-sudo systemctl enable ipcam-stream
-sudo systemctl start ipcam-stream
-sudo systemctl status ipcam-stream
+bash scripts/install_ipcam_service.sh
 ```
 
-To restart or stop:
+This copies the service file, enables it, and starts it. The camera stream will start automatically on every reboot.
+
+To check status or restart:
 
 ```bash
+sudo systemctl status ipcam-stream
 sudo systemctl restart ipcam-stream
 sudo systemctl stop ipcam-stream
 ```

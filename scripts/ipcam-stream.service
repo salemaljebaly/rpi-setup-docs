@@ -1,0 +1,16 @@
+[Unit]
+Description=Dahua IP Camera Stream to QGroundControl
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lab2
+WorkingDirectory=/home/lab2/rpi-setup-docs
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash /home/lab2/rpi-setup-docs/scripts/start_ipcam_stream.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

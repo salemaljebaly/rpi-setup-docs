@@ -483,12 +483,13 @@ cd rpi-setup-docs</pre>
   </ol>
 
   <h3>الخطوة الرابعة: تفعيل البدء التلقائي عند الإقلاع</h3>
-  <pre>sudo systemctl enable ipcam-stream
-sudo systemctl start ipcam-stream
-sudo systemctl status ipcam-stream</pre>
+  <p>بعد تحديث كلمة المرور وعنوان IP في <code>scripts/start_ipcam_stream.sh</code>، شغّل سكريبت التثبيت:</p>
+  <pre>bash scripts/install_ipcam_service.sh</pre>
 
-  <p>لإيقاف الخدمة أو إعادة تشغيلها:</p>
-  <pre>sudo systemctl stop ipcam-stream
+  <p>هذا السكريبت يقوم تلقائياً بـ: نسخ ملف الخدمة، تفعيله، وتشغيله. بعد كل إقلاع للـ Pi ستعمل الكاميرا تلقائياً.</p>
+
+  <p>للتحقق من حالة الخدمة أو إعادة تشغيلها:</p>
+  <pre>sudo systemctl status ipcam-stream
 sudo systemctl restart ipcam-stream</pre>
 
   <hr class="section-divider" />
