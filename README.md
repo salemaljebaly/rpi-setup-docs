@@ -107,134 +107,33 @@ ssh lab2@192.168.0.127
 
 ## Part 3 — Camera Setup
 
-### Step 1: Connect the Camera
+Two camera options are supported. See the full guide for both:
 
-Connect the Raspberry Pi HQ Camera to the Pi using the CSI ribbon cable. Make sure the cable is inserted correctly and the clip is locked.
+👉 **[docs/camera-setup.md](docs/camera-setup.md)**
 
-### Step 2: Install Required Packages
+| Option | Status | Detail |
+|--------|--------|--------|
+| Raspberry Pi HQ Camera (IMX477) | Legacy | CSI ribbon cable, Pi handles encoding |
+| Dahua IP Camera (DH-IPC-HFW2431SP-S-S2) | ✅ Currently used | Ethernet, 4MP, 0% Pi CPU |
 
-```bash
-sudo apt update
-sudo apt install -y rpicam-apps libcamera-apps gstreamer1.0-tools \
-  gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-  gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-libcamera \
-  v4l-utils
-```
+### Quick Start (Dahua IP Camera)
 
-### Step 3: Verify the Camera is Detected
-
-```bash
-rpicam-hello --list-cameras
-```
-
-Expected output:
-```
-Available cameras
------------------
-0 : imx477 [4056x3040 12-bit RGGB] (...)
-```
-
-If the camera is detected, you are ready to proceed.
-
-### Step 4: Capture a Test Image
-
-```bash
-rpicam-still -o test.jpg
-```
-
-To copy the image to your Mac and view it:
-
-```bash
-scp lab2@192.168.0.127:~/test.jpg ~/Desktop/test.jpg
-```
-
----
-
-## Part 4 — Known Camera Issues and Fixes
-
-### Issue 1: Blurry Image
-
-The Raspberry Pi HQ Camera uses a **manual focus lens**. If the image is blurry, you need to physically rotate the lens until the image is in focus.
-
-- Start the video stream (see Part 6)
-- Watch the live feed in QGroundControl
-- Slowly rotate the lens clockwise or counter-clockwise
-- Stop when the image is sharp
-
-### Issue 2: Purple or Magenta Color in Images
-
-The IMX477 HQ Camera has a removable **IR cut filter** on the lens mount. If the filter is missing or not seated correctly, all images will appear purple or magenta.
-
-- Check the lens mount on the camera board for a small glass filter
-- Make sure it is screwed in properly
-- If the filter is missing, you need to purchase a replacement
-
-> **Note:** The live video stream may appear with correct colors even without the IR filter, depending on the encoding pipeline used. However, still images will always appear purple without the filter.
-
----
-
-## Part 5 — Live Video Stream to QGroundControl
-
-### Step 1: Download the Stream Script
-
-On the Raspberry Pi, clone this repository:
+Clone the repo on the Pi, then start the stream:
 
 ```bash
 git clone https://github.com/salemaljebaly/rpi-setup-docs.git
 cd rpi-setup-docs
+bash scripts/start_ipcam_stream.sh
 ```
 
-### Step 2: Configure the Target IP
-
-Copy the example config and set your Mac's IP address:
+Enable auto-start on boot:
 
 ```bash
-cp config/stream.conf.example config/stream.conf
-nano config/stream.conf
+sudo systemctl enable ipcam-stream
+sudo systemctl start ipcam-stream
 ```
 
-To find your Mac's IP, run this on your Mac:
-
-```bash
-ipconfig getifaddr en0
-```
-
-Set `TARGET_IP` in `stream.conf` to that value.
-
-### Step 3: Run the Stream Manually (Test First)
-
-```bash
-bash scripts/start_stream.sh
-```
-
-### Step 4: Configure QGroundControl
-
-1. Open QGroundControl on your Mac
-2. Click the **Q icon** (top left) → **Application Settings** → **Video**
-3. Set **Video Source** to `UDP h.264 Video Stream`
-4. Set **UDP Port** to `5600`
-5. Close settings — the video should appear in the main HUD
-
-### Step 5: Enable Auto-Start on Boot
-
-Once the stream is working, install it as a systemd service so it starts automatically after every reboot:
-
-```bash
-bash scripts/install_service.sh
-```
-
-Check the service status:
-
-```bash
-sudo systemctl status camera-stream
-```
-
-To stop or restart the service:
-
-```bash
-sudo systemctl stop camera-stream
-sudo systemctl restart camera-stream
-```
+Open QGroundControl → **Application Settings** → **Video** → `UDP h.264 Video Stream` → port `5600`.
 
 ---
 

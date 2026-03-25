@@ -302,11 +302,10 @@
       <li><a href="#hardware">متطلبات الأجهزة</a></li>
       <li><a href="#part1">الجزء الأول — تثبيت نظام التشغيل Raspberry Pi OS</a></li>
       <li><a href="#part2">الجزء الثاني — الاتصال بـ Raspberry Pi عبر SSH</a></li>
-      <li><a href="#part3">الجزء الثالث — إعداد الكاميرا</a></li>
-      <li><a href="#part4">الجزء الرابع — المشاكل الشائعة وحلولها</a></li>
-      <li><a href="#part5">الجزء الخامس — بث الفيديو المباشر إلى QGroundControl</a></li>
-      <li><a href="#part6">الجزء السادس — MAVLink Router للتحكم بالطائرة</a></li>
-      <li><a href="#part7">الجزء السابع — البث عن بُعد عبر Tailscale</a></li>
+      <li><a href="#part3">الجزء الثالث — إعداد كاميرا Dahua IP Camera ✅</a></li>
+      <li><a href="#part4">الجزء الرابع — بث الفيديو إلى QGroundControl</a></li>
+      <li><a href="#part5">الجزء الخامس — MAVLink Router للتحكم بالطائرة</a></li>
+      <li><a href="#part6">الجزء السادس — البث عن بُعد عبر Tailscale</a></li>
       <li><a href="#troubleshooting">استكشاف الأخطاء وإصلاحها</a></li>
       <li><a href="#references">المراجع والروابط</a></li>
     </ol>
@@ -318,7 +317,7 @@
   <h2 id="hardware">متطلبات الأجهزة</h2>
   <ul>
     <li>Raspberry Pi 5</li>
-    <li>كاميرا Raspberry Pi HQ Camera (IMX477) مع عدسة متوافقة</li>
+    <li>كاميرا Dahua IP Camera (DH-IPC-HFW2431SP-S-S2) — الكاميرا المستخدمة حالياً ✅</li>
     <li>بطاقة MicroSD (16 جيجابايت أو أكثر)</li>
     <li>قارئ بطاقة MicroSD عبر USB</li>
     <li>مصدر طاقة (USB-C، 5V/5A لـ RPi 5)</li>
@@ -405,107 +404,90 @@
   <hr class="section-divider" />
 
   <!-- Part 3 -->
-  <h2 id="part3">الجزء الثالث — إعداد الكاميرا</h2>
+  <h2 id="part3">الجزء الثالث — إعداد كاميرا Dahua IP Camera</h2>
+
+  <div class="note">
+    الكاميرا المستخدمة حالياً هي <strong>Dahua DH-IPC-HFW2431SP-S-S2</strong> — كاميرا شبكية تتصل عبر Ethernet وتُشفّر الفيديو داخلياً. لا يتحمّل الـ Pi أي عبء معالجة للفيديو.
+  </div>
+
+  <h3>مواصفات الكاميرا</h3>
+  <table>
+    <thead><tr><th>الخاصية</th><th>القيمة</th></tr></thead>
+    <tbody>
+      <tr><td>الموديل</td><td>DH-IPC-HFW2431SP-S-S2</td></tr>
+      <tr><td>الدقة</td><td>4MP (2560×1440)</td></tr>
+      <tr><td>العدسة</td><td>3.6mm ثابتة</td></tr>
+      <tr><td>الطاقة</td><td>12V DC أو POE</td></tr>
+      <tr><td>الاتصال</td><td>Ethernet RJ45</td></tr>
+      <tr><td>الترميز الداخلي</td><td>H.264 / H.265</td></tr>
+      <tr><td>رؤية ليلية</td><td>نعم (IR)</td></tr>
+    </tbody>
+  </table>
 
   <h3>الخطوة الأولى: توصيل الكاميرا</h3>
-  <p>وصّل كاميرا HQ بالـ Pi عبر كابل CSI الشريطي. تأكد من إدخاله بشكل صحيح وإغلاق المشبك.</p>
+  <p>وصّل الكاميرا بمنفذ Ethernet الخاص بالـ Pi (<code>eth0</code>) باستخدام كابل RJ45. زوّد الكاميرا بالطاقة عبر 12V أو POE injector.</p>
 
-  <h3>الخطوة الثانية: تثبيت الحزم المطلوبة</h3>
-  <pre>sudo apt update
-sudo apt install -y rpicam-apps libcamera-apps gstreamer1.0-tools \
-  gstreamer1.0-plugins-base gstreamer1.0-plugins-good \
-  gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-libcamera \
-  v4l-utils</pre>
+  <h3>الخطوة الثانية: ضبط IP ثابت على eth0</h3>
+  <p>الكاميرا تعمل افتراضياً على <code>192.168.1.108</code>. نضبط IP ثابتاً على الـ Pi ليكون في نفس الشبكة:</p>
+  <pre>sudo nmcli connection add type ethernet ifname eth0 con-name eth0-static \
+  ip4 192.168.1.100/24 ipv4.method manual ipv6.method ignore
+sudo nmcli connection up eth0-static</pre>
 
-  <h3>الخطوة الثالثة: التحقق من اكتشاف الكاميرا</h3>
-  <pre>rpicam-hello --list-cameras</pre>
+  <p>تحقق من الاتصال بالكاميرا:</p>
+  <pre>ping -c 3 192.168.1.108</pre>
 
-  <p>الناتج المتوقع:</p>
-  <pre>Available cameras
------------------
-0 : imx477 [4056x3040 12-bit RGGB] (...)</pre>
+  <h3>الخطوة الثالثة: الإعداد الأولي للكاميرا</h3>
+  <p>افتح نفقاً SSH للوصول إلى واجهة الكاميرا من جهازك:</p>
+  <pre>ssh -L 8080:192.168.1.108:80 lab2@lab2.local -N</pre>
 
-  <h3>الخطوة الرابعة: التقاط صورة اختبارية</h3>
-  <pre>rpicam-still -o test.jpg</pre>
+  <p>اترك هذا الأمر يعمل في الخلفية، ثم افتح المتصفح على: <code>http://localhost:8080</code></p>
+  <p>أكمل الإعداد الأولي — اختر المنطقة، المعيار الفيديوي (PAL للشرق الأوسط)، واضبط كلمة مرور قوية.</p>
 
-  <p>لنسخ الصورة إلى جهازك:</p>
-  <pre>scp lab2@192.168.0.127:~/test.jpg ~/Desktop/test.jpg</pre>
+  <div class="note">
+    إعداد المنطقة يؤثر فقط على التوقيت واللغة الافتراضية — لا يقيّد استخدام الكاميرا في أي مكان في العالم.
+  </div>
 
-  <hr class="section-divider" />
-
-  <!-- Part 4 -->
-  <h2 id="part4">الجزء الرابع — المشاكل الشائعة وحلولها</h2>
-
-  <h3>المشكلة الأولى: صورة ضبابية / غير واضحة</h3>
-  <p>كاميرا HQ تستخدم <strong>عدسة ذات بؤرة يدوية</strong>. إذا كانت الصورة ضبابية، يجب ضبط التركيز يدوياً.</p>
-  <ul>
-    <li>شغّل البث المباشر (انظر <a href="#part5">الجزء الخامس</a>)</li>
-    <li>شاهد الصورة في QGroundControl</li>
-    <li>أدر العدسة ببطء في اتجاه عقارب الساعة أو عكسه</li>
-    <li>أوقف الدوران عندما تصبح الصورة حادة وواضحة</li>
-  </ul>
-
-  <h3>المشكلة الثانية: ألوان أرجوانية أو قرمزية</h3>
-  <p>كاميرا IMX477 تحتوي على <strong>مرشح قطع الأشعة تحت الحمراء (IR cut filter)</strong>. إذا كان المرشح مفقوداً أو غير مثبّت بشكل صحيح، ستظهر الصور بلون أرجواني.</p>
-  <ul>
-    <li>افحص حامل العدسة على لوحة الكاميرا بحثاً عن زجاجة صغيرة</li>
-    <li>تأكد من تثبيته بشكل صحيح</li>
-    <li>إذا كان مفقوداً، يجب شراء بديل</li>
-  </ul>
+  <h3>الخطوة الرابعة: التحقق من بث RTSP</h3>
+  <pre>ffprobe -v error -rtsp_transport tcp \
+  'rtsp://admin:YOUR_PASSWORD@192.168.1.108/cam/realmonitor?channel=1&subtype=0'</pre>
 
   <div class="warning">
-    ملاحظة: قد يظهر البث المباشر بألوان صحيحة حتى بدون المرشح حسب الإعدادات المستخدمة، لكن الصور الثابتة ستظهر دائماً أرجوانية.
+    إذا كانت كلمة المرور تحتوي على <code>@</code> يجب استبدالها بـ <code>%40</code> في الرابط.
   </div>
 
   <hr class="section-divider" />
 
-  <!-- Part 5 -->
-  <h2 id="part5">الجزء الخامس — البث المباشر إلى QGroundControl</h2>
+  <!-- Part 4 -->
+  <h2 id="part4">الجزء الرابع — بث الفيديو إلى QGroundControl</h2>
 
-  <h3>الخطوة الأولى: تحميل سكريبت البث</h3>
-  <p>على Raspberry Pi، استنسخ المستودع:</p>
+  <p>الكاميرا تُشفّر الفيديو داخلياً وتبثّه عبر RTSP. الـ Pi يُعيد تغليف الحزم فقط ويُرسلها إلى QGC عبر UDP — بدون أي معالجة أو تشفير.</p>
+
+  <pre>كاميرا Dahua (H.264) ← RTSP ← Pi ← RTP/UDP ← QGroundControl</pre>
+
+  <h3>الخطوة الأولى: استنساخ المستودع على الـ Pi</h3>
   <pre>git clone https://github.com/salemaljebaly/rpi-setup-docs.git
 cd rpi-setup-docs</pre>
 
-  <h3>الخطوة الثانية: إعداد IP الهدف</h3>
-  <p>انسخ ملف الإعداد المثالي وحرّره:</p>
-  <pre>cp config/stream.conf.example config/stream.conf
-nano config/stream.conf</pre>
+  <h3>الخطوة الثانية: تشغيل البث يدوياً (للاختبار)</h3>
+  <pre>bash scripts/start_ipcam_stream.sh</pre>
 
-  <p>لمعرفة IP جهازك، افتح الطرفية ونفّذ:</p>
-  <pre># على macOS
-ipconfig getifaddr en0
-
-# على Linux
-hostname -I | awk '{print $1}'
-
-# على Windows
-ipconfig</pre>
-
-  <p>ضع القيمة في حقل <code>TARGET_IP</code> داخل <code>stream.conf</code>.</p>
-
-  <h3>الخطوة الثالثة: تشغيل البث يدوياً (للاختبار)</h3>
-  <pre>bash scripts/start_stream.sh</pre>
-
-  <h3>الخطوة الرابعة: إعداد QGroundControl</h3>
+  <h3>الخطوة الثالثة: إعداد QGroundControl</h3>
   <ol>
     <li>افتح <a href="https://qgroundcontrol.com/" target="_blank">QGroundControl</a> على جهازك</li>
-    <li>انقر على <strong>أيقونة Q</strong> (أعلى اليسار) ← <strong>Application Settings</strong> ← <strong>Video</strong></li>
+    <li>انقر على <strong>أيقونة Q</strong> ← <strong>Application Settings</strong> ← <strong>Video</strong></li>
     <li>اضبط <strong>Video Source</strong> على <code>UDP h.264 Video Stream</code></li>
     <li>اضبط <strong>UDP Port</strong> على <code>5600</code></li>
-    <li>أغلق الإعدادات — يجب أن يظهر الفيديو في واجهة HUD الرئيسية</li>
+    <li>أغلق الإعدادات — يجب أن يظهر الفيديو فوراً في واجهة HUD</li>
   </ol>
 
-  <h3>الخطوة الخامسة: تفعيل البدء التلقائي عند الإقلاع</h3>
-  <p>بعد التحقق من عمل البث، ثبّته كخدمة systemd:</p>
-  <pre>bash scripts/install_service.sh</pre>
-
-  <p>للتحقق من حالة الخدمة:</p>
-  <pre>sudo systemctl status camera-stream</pre>
+  <h3>الخطوة الرابعة: تفعيل البدء التلقائي عند الإقلاع</h3>
+  <pre>sudo systemctl enable ipcam-stream
+sudo systemctl start ipcam-stream
+sudo systemctl status ipcam-stream</pre>
 
   <p>لإيقاف الخدمة أو إعادة تشغيلها:</p>
-  <pre>sudo systemctl stop camera-stream
-sudo systemctl restart camera-stream</pre>
+  <pre>sudo systemctl stop ipcam-stream
+sudo systemctl restart ipcam-stream</pre>
 
   <hr class="section-divider" />
 
