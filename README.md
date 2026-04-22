@@ -142,6 +142,14 @@ sudo systemctl start ipcam-stream
 
 To connect a flight controller (e.g. Cube Orange+) to QGroundControl via the Pi, use [mavlink-router](https://github.com/mavlink-router/mavlink-router).
 
+If you also want to drive motors from a Radiomaster TX12 through a Cube Orange+ and Sabertooth, see:
+
+👉 **[docs/tx12-sabertooth-control.md](docs/tx12-sabertooth-control.md)**
+
+To inspect which RC channels the Cube is actually receiving over MAVLink, use:
+
+👉 **[scripts/monitor_rc_channels.py](scripts/monitor_rc_channels.py)**
+
 ### Step 1: Install dependencies
 
 ```bash
@@ -190,6 +198,33 @@ Replace `192.168.0.125` with your device's IP.
 sudo systemctl enable mavlink-router
 sudo systemctl start mavlink-router
 ```
+
+### Step 5: Configure auto-restart on USB reconnect
+
+By default, if the flight controller isn't connected at boot time, the service will fail and stop retrying. Fix this by creating a systemd override:
+
+```bash
+sudo mkdir -p /etc/systemd/system/mavlink-router.service.d
+sudo nano /etc/systemd/system/mavlink-router.service.d/override.conf
+```
+
+Paste:
+
+```ini
+[Service]
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=0
+```
+
+Then reload:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart mavlink-router
+```
+
+This ensures the service automatically retries every 10 seconds if the Cube isn't plugged in yet at boot, or if it gets disconnected and reconnected.
 
 ---
 
@@ -264,4 +299,5 @@ Everything else stays the same — same ports, same QGroundControl settings. Tai
 | "Waiting for video" in QGC | Stream stopped or wrong settings | Run `sudo systemctl restart ipcam-stream` |
 | Stream works manually but not on boot | Service not enabled | Run `sudo systemctl enable ipcam-stream` |
 | QGC not receiving MAVLink | Wrong IP in mavlink-router config | Update `Address` in `/etc/mavlink-router/main.conf` |
+| mavlink-router failed at boot | Cube not connected when service started | Add systemd override with `Restart=always` (see Part 4, Step 5) |
 | Cannot access camera web UI | Mac not on same subnet as camera | Use SSH tunnel: `ssh -L 8080:192.168.1.108:80 lab2@lab2.local -N` |
